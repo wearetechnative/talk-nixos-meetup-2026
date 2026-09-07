@@ -1,0 +1,18 @@
+## A small company with large clients { background-image="img/bg3.jpg"  }
+<br/>
+
+##### We successfully help a number of clients throughout Europe: {.white-text}
+
+::: {.highlight-text}
+**AutoMobile.it** – the largest online vehicle marketplace in Italy.
+
+**Dreamlines.com** – Europe’s largest e-commerce channel for online booking of cruise holidays.
+
+**LePaya.com** – one of the top 50 fastest growing startups in The Netherlands.
+
+**Ahold DelHaize** – one of the larger supermarket retailers in The Netherlands.
+
+**Volksbank** – a relatively small Dutch bank with over 3M clients.
+
+**Recharge.com** – the leading online branded payments marketplace in 30+ countries.
+:::

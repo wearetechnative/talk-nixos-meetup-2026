@@ -1,0 +1,7 @@
+## How do we differentiate from others?  {.center background-image="img/bg4.jpg" .white-text}
+
+::: {.highlight-text}
+TechNative is grown on good old Dutch pragmatism. We are only successful if you are successful. Because of
+this we look at technology as a vehicle, not a destination.
+:::
+

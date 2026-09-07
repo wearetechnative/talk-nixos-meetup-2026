@@ -1,0 +1,12 @@
+# Quarto extensions are fetched with ./RUNME.sh install_deps
+_extensions/
+.quarto/
+output/
+
+# Nix
+result
+result-*
+
+.DS_Store
+
+/.quarto/

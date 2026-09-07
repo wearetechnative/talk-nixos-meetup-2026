@@ -1,0 +1,23 @@
+## Nice to meet you! {.heading-party-red dark-background="false" background-image="img/bg5.jpg"}
+
+::: {.highlight-text}
+**Born in the Cloud:** TechNative helps clients getting more out of their digital journeys.
+From software development & testing to cloud management.
+<br/>
+<br/>
+
+**Based in Amersfoort, The Netherlands:** with currently a team of ±35 DevOps
+professionals and software Architects we help clients throughout Europe with complex
+platforms or scalability issues.
+<br/>
+<br/>
+
+**We love Open Source:** 90% of the projects we do are based on Open Source software,
+predominantly on Linux and in mostly in public or private Cloud.
+<br/>
+<br/>
+
+**Official business partner:** All our engineers are AWS certified and we are an official
+recognized AWS Business Partner. Next to that TechNative is the largest FinOps
+Certified Business partner in the BeNeLux.
+:::

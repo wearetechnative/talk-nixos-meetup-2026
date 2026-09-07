@@ -1,0 +1,13 @@
+project:
+  output-dir: output
+filters:
+  - quarto
+  #  - texnative
+dark_background: true
+disable_justify: true
+letterhead_img: _extensions/TechNative-B-V/quarto-technative-branding/letterhead-technative.png
+letterhead_img_darkbg: _extensions/TechNative-B-V/quarto-technative-branding/letterhead-technative-dia.png
+cover_illustration_img: _extensions/TechNative-B-V/quarto-technative-branding/unleash_white.jpg
+cover_illustration_img_darkbg: _extensions/TechNative-B-V/quarto-technative-branding/unleash.jpg
+format: texnative-pdf
+toc-depth: 4

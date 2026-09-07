@@ -1,0 +1,567 @@
+---
+title: "ElastiNix"
+subtitle: Running NixOS smoothly on AWS
+author: Pim Snel
+date: 09/08/2026 # MONTH/DAY/YEAR
+lang: en
+document_number: TNW026001
+
+format: technative-theme-revealjs
+date-format: "MMMM YYYY"
+incremental: false
+embed-resources: true
+filters:
+  - quarto
+
+# The theme gives `pre code` a near-white background but no text colour, so a
+# code block *without* a language inherits the white body colour and vanishes.
+# Remove once revealjs-technative-theme sets a code colour itself.
+include-in-header:
+  - text: |
+      <style>
+      .reveal pre code { color: #112f41; }
+      </style>
+---
+
+## Today {.center}
+
+- Me, briefly
+- TechNative, briefly
+- **ElastiNix** — running NixOS on AWS
+- Where we go next
+
+# Who's talking {.center .heading-party-blue}
+
+## Hello, I'm Pim {.center}
+
+- 20 years at **Lingewoud**, the software and internet agency I founded
+- Full stack, then infrastructure, then both at once
+- Always chasing the same thing: **one source of truth**
+- Today: **Architect at TechNative**
+
+## I thought Nix was ugly {.center}
+
+- I care about the aesthetics of source code. I love Ruby.
+- Nix? I found it plain ugly.
+- I was seriously planning a Nix dialect that looked like Ruby.
+
+::: {.fragment}
+I dropped that plan.
+
+**Nix grows on you.** Now I want *everything* described in Nix.
+:::
+
+# TechNative {.center .heading-party-blue}
+
+## TechNative {.center}
+
+- Almost **7 years** old, based in Amersfoort, NL
+- Two things we do: **Cloud Engineering** and **Cloud Financial Management**
+- Our stack:
+
+::: {.highlight-text}
+**NixOS** · AWS · Terraform / OpenTofu · Open Source · Python · Go · TypeScript
+:::
+
+# ElastiNix {.center .heading-party-blue}
+
+Running NixOS smoothly on AWS
+
+## Why we built it {.center}
+
+- One **source of truth** per machine — the OS *and* the infrastructure it runs on
+- Fits **CatStack**, our Terraform framework: domains, environments, DRY
+- Made for **teams**
+- Made for **GitOps**
+- **One command** deploys both: the NixOS machine and the Terraform infra
+
+## Where it came from {.center}
+
+> "Terraform and Nix are both pieces of software whose success comes from their
+> ability to provide a declarative interface to a procedural world."
+
+*Jonas Carpay, 2022 — [End-to-end declarative deployment](https://jonascarpay.com/posts/2022-09-19-declarative-deployment.html)*
+
+::: {.fragment}
+That post is the seed of ElastiNix. We owe it everything.
+:::
+
+## Where it came from {.center}
+
+- **Sept 2022** — Carpay publishes the core idea
+- **March 2025** — first commit
+- Grew **organically**, one real client project at a time
+- Since `nixos-25.05`: versioned against official NixOS releases
+- Two repos: the **flake** and the **Terraform module**
+
+## The idea we borrowed {.center}
+
+Split the machine in two:
+
+- **bootstrap image** — minimal NixOS, provisioned once, left alone
+- **live config** — the actual machine, deployed onto it
+
+::: {.fragment}
+Change your application → you do **not** reprovision the hardware.
+:::
+
+## Architecture {.center}
+
+```
+  NIX                                AWS
+
+  bootstrap image ──.vhd──▶  S3 ──▶ snapshot import ──▶ AMI ──▶ EC2
+                                                                 │
+  live config ──────closure────────────────▶ SSM ────────────────┘
+```
+
+- Nix builds **both** artifacts
+- Terraform receives them as **store paths**
+
+## One command {.center}
+
+```nix
+packages = {
+  prodApply = elastinix.lib.tf_command (machineArgs // {
+    inherit runSystem;
+    varsfile = ../../infra_environments/prod/prod.tfvars.json;
+  });
+};
+```
+
+```bash
+nix run .#prodApply
+```
+
+## What that command really is {.center}
+
+```bash
+export TF_VAR_ec2_bootstrap_img_path="${bootstrapImage}/nixos_image.vhd"
+export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
+
+terraform apply -var-file=prod.tfvars.json
+```
+
+::: {.fragment}
+Change one line of NixOS config → new store path → Terraform sees a diff.
+
+That is the whole trick.
+:::
+
+## Baked vs. Brewed {.center}
+
+Two ways to get a machine onto AWS.
+
+::: {.highlight-text}
+**Baked**
+
+1. Build the **full** NixOS image
+2. Terraform uploads it, imports the snapshot, registers the AMI, boots it
+:::
+
+::: {.highlight-text}
+**Brewed**
+
+1. Build a **minimal** NixOS image
+2. Terraform uploads, imports, boots it
+3. Copy the rest of the closure onto the running machine
+:::
+
+## Baked vs. Brewed — when {.center}
+
+|                   | Baked              | Brewed                  |
+|-------------------|--------------------|-------------------------|
+| Full deploy       | ~30 minutes        | fast                    |
+| Shape             | Auto Scaling Group | single EC2              |
+| Image changes     | rarely             | often                   |
+| Typical use       | production fleets  | development             |
+
+::: {.fragment}
+Brewed is also how you *develop* the image that will later be baked into an ASG.
+:::
+
+## Features {.center}
+
+- A **remote library flake** — shared modules across every client project
+- **Auto Scaling Groups**
+- The matching **Terraform module**, so the infra ships with the machine
+- **Smol** — work in progress: making the images as small as we can
+
+## Made for AWS {.center}
+
+- EC2-optimized **kernel drivers**
+- **CloudWatch** integration
+- **SSM Agent** — deployment over SSM, no public SSH
+- **agenix** for secrets
+
+## The module library {.center}
+
+What grew on top, from real projects:
+
+::: {.highlight-text}
+Prometheus & Grafana · health checks · central vulnerability scanning
+(vulnix + trivy) · host inventory · Postfix/SES relay · Atuin · Documenso ·
+OptScale · Jira sync
+:::
+
+# Demo {.center .heading-party-green}
+
+A Vaultwarden stack on AWS
+
+## Demo {.center}
+
+- The **flake**
+- The **host config**
+- The **deploy**
+- **Backup** configuration
+- Load balancer, or not — *code only, we won't run it*
+
+# Roadmap {.center .heading-party-blue}
+
+## Roadmap {.center}
+
+- Adopt **deploy-rs** instead of our own deploy mechanism
+- Smaller images
+- Better ASG story
+
+::: {.fragment}
+- **Make the Terraform files unnecessary. Describe everything in Nix.**
+:::
+
+# Wait — we fixed this {.center .heading-party-red}
+
+::: {.fragment}
+We fixed this **big time**.
+:::
+
+## {.center}
+
+![](img/nivis-emblem.svg){width="240"}
+
+::: {.highlight-text}
+**We created Nivis.**
+:::
+
+<!-- TODO: one strong line under the name. Brainstorm tomorrow. -->
+
+## {.center}
+
+::: {.highlight-text}
+**One source of truth**
+
+**for your entire tech stack.**
+:::
+
+## Where that roadmap item went {.center}
+
+- I wanted to delete our Terraform files
+- Then I wanted to know *why* nobody had
+
+::: {.fragment}
+- **15 June 2026** — first commit
+- **Today** — twelve weeks later
+:::
+
+::: {.fragment}
+I'm not a compiler engineer. I just wanted that last bullet.
+:::
+
+# Why {.center .heading-party-blue}
+
+## The wall {.center}
+
+- Inside one machine, Nix is **total**: every package, every setting, every version
+- Outside it — servers, networks, DNS, databases — Nix **stops**
+- There you switch to another language, with other rules
+
+::: {.fragment}
+That wall is **artificial**. A server is just another describable thing.
+:::
+
+## We were standing on that wall {.center}
+
+```bash
+export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
+```
+
+- That string **is** the wall
+- Nix computed it. Terraform consumed it.
+- Nothing ever came back.
+
+## The problem, without naming a tool {.center}
+
+> Complexity does not arise because systems are large,
+> but because we describe them in different ways.
+
+::: {.fragment}
+- The same reality, described twice
+- One person writes Terraform, another writes NixOS
+- The boundary is not in the system — it is in our tools
+- Energy goes into **translation** instead of improvement
+:::
+
+## What Nivis is {.center}
+
+- OpenTofu/Terraform **provider resources as first-class Nix values**
+- A thin **Go executor** speaks the plugin protocol to **unmodified provider binaries**
+- No HCL. No second state language.
+
+::: {.fragment}
+**Nix is the configuration. The provider does the work.**
+:::
+
+# How {.center .heading-party-blue}
+
+## The hard part: two ideas of time {.center}
+
+- **Nix** wants to compute everything up front, then freeze it
+- **Providers** find out along the way — an IP does not exist until the machine boots
+- And your next step needs that IP
+
+::: {.fragment}
+This is why the combination stayed a dream for so long.
+:::
+
+## The round trip {.center}
+
+1. Nix evaluates as far as it can
+2. The executor drives the providers; they return **real** values
+3. Those values are injected back into Nix, which **re-evaluates**
+4. Repeat until nothing new resolves — a **fixpoint**
+
+## The round trip, in the IR {.center}
+
+```
+__ref      →  another resource's output
+__derived  →  a value Nix computed from an output
+```
+
+- Not-yet-known values become **typed placeholders**
+- The **ledger** carries the real outputs back in
+- A deeper chain simply takes more phases
+
+## Why not `Output<T>`? {.center}
+
+- Pulumi gets promises for free — a Pulumi program is a **running process**
+- Nix is a **batch evaluator**. There is no live runtime to await in.
+
+::: {.fragment}
+So Nivis does the honest, Nix-shaped thing: **re-evaluate to a fixpoint.**
+:::
+
+# Architecture {.center .heading-party-blue}
+
+## The pieces {.center}
+
+```
+  your flake                nivis (Go)             providers
+  ──────────                ──────────             ─────────
+
+  nivis.plan ──IR (JSON)──▶  executor ───gRPC───▶  aws, hcloud, …
+       ▲                         │                 unmodified
+       └──────── ledger ◀────────┘                 binaries
+```
+
+## The flake interface {.center}
+
+```nix
+nivis.plan = ledger: lib.toIR {
+  providers.aws = lib.mkProvider {
+    source = "registry.opentofu.org/hashicorp/aws";
+    config.region = "eu-central-1";
+  };
+  resources = [ ... ];
+  inherit ledger;
+};
+```
+
+::: {.fragment}
+`ledger → IR`. That is the entire interface.
+:::
+
+## Spawn, don't link {.center}
+
+- Nivis speaks `tfprotov5`/`v6` to the **same binaries** OpenTofu runs
+- Pulumi *compiles* every provider through a bridge, one at a time
+
+::: {.fragment}
+Spawn-not-link means **every** OpenTofu provider works on day one.
+:::
+
+## Two frozen contracts {.center}
+
+- **The IR** — `IR-CONTRACT.md` + `ir-schema.json`; the Nix producer *and* the Go
+  consumer validate against it
+- **The flake interface** — `nivis.plan = ledger → IR`
+
+::: {.fragment}
+Change the spec before you change the shape.
+:::
+
+## The CLI {.center}
+
+```bash
+nivis plan      # + create   ~ update   -/+ replace   = no change
+nivis apply     # resolve across phases, to a fixpoint
+nivis state show <resource-id>
+nivis destroy
+```
+
+# Features {.center .heading-party-blue}
+
+## The Nix library {.center}
+
+- `mkResource` · `mkData` · `mkProvider`
+- `refAttr` · `str` · `derived` — wiring one resource into the next
+- `mkVars` — typed variables from `--var`, `--var-file`, environment
+- `mkResources` (`count`, `for_each`) · `evalModules`
+
+::: {.fragment}
+Pure: **builtins only**, no nixpkgs. It evaluates without the binary cache.
+:::
+
+## Typed constructors, from any provider {.center}
+
+```bash
+nivis gen --provider <binary> --out <dir>
+```
+
+- Reads the provider's **own schema**
+- Emits typed Nix constructors — nested blocks, correct list-vs-single shapes
+- The generated constructor **is** the reference documentation
+
+## The machine is a derivation {.center}
+
+- `drv` / `drvFile` mark a Nix build output
+- `nivis apply` realises it, then hands it to the provider
+- Build a NixOS image in Nix → snapshot → boot it
+
+::: {.fragment}
+**There is no install step.**
+:::
+
+## State {.center}
+
+- Local state file by default
+- **S3 backend**, with locking
+- `nivis state migrate --to-remote` — locks both sides, copies, verifies by
+  reading back, *then* removes the source
+
+## Licensing {.center}
+
+- Nivis's own code: **Apache-2.0**
+- Vendored Terraform protocol files: MPL-2.0
+
+::: {.fragment}
+**No BUSL anywhere.**
+:::
+
+## Where we are weak {.center}
+
+- **Alpha.** Small surface, never run at scale
+- No policy as code, no RBAC, no audit trail
+- Provider registry integration still needs hardening
+- No production track record, no commercial support
+
+::: {.fragment}
+Maturity is a feature too — and there Terraform and Pulumi lead.
+:::
+
+# Demos {.center .heading-party-green}
+
+## Demo 1 — the same stack, in Nivis {.center}
+
+The Vaultwarden stack you just saw, on AWS — no Terraform module.
+
+```
+nix build ─▶ NixOS amazon image (.vhd)
+                   │
+  Nivis ── aws_s3_bucket + aws_s3_object      upload the image
+        ── aws_ebs_snapshot_import            .vhd → EBS snapshot
+        ── aws_ami                            register it
+        ── aws_security_group
+        ── aws_instance                       launch it
+```
+
+::: {.fragment}
+One expression. The OS **and** the cloud resources that ship it.
+:::
+
+<!-- TODO: point at the actual demo repo -->
+
+## Demo 2 — Hetzner {.center}
+
+Not an example. This is the box that runs the Nivis private beta.
+
+- Our **own provider**: `terraform-provider-hcloudimage` — Nivis's first
+  protocol-v6 provider
+- The image is a flake package: uploaded, snapshotted, booted
+- Round trip in **one apply**: snapshot id → server, primary IP → DNS records
+- The server is cattle; the primary IP and the volume are the pets
+
+::: {.fragment}
+**No `nixos-anywhere`. No install step. The machine is a derivation.**
+:::
+
+## Demo 3 — the registry {.center}
+
+- Every OpenTofu provider is Nivis-compatible **by design**
+- So the registry does not port anything — it makes them **discoverable**
+- Documentation is **derived from the provider's own schema**, via `nivis gen`
+- Which means the docs always match the binary you actually run
+
+## Modules, not just resources {.center}
+
+- A **website** on Amplify
+- A **form endpoint**: altcha proof-of-work captcha → Lambda → SES
+
+::: {.fragment}
+That form endpoint is not a demo — it is the contact form on technative.eu.
+:::
+
+# Roadmap {.center .heading-party-blue}
+
+## Already landed {.center}
+
+- The round trip, across two providers, to a fixpoint
+- Real AWS: create · update · replace · destroy
+- Variables, datasources, schema codegen
+- NixOS image → AMI, end to end
+- Remote state on S3, with locking
+
+## Next: a daily driver {.center}
+
+- Legible plan output — colour by change type, show the phases
+- Per-provider reference documentation
+- Shell completion, state ergonomics
+
+::: {.fragment}
+**Done when:** a Nix developer runs a real project day to day without
+falling back to Terraform.
+:::
+
+## Then: team-ready, and beyond {.center}
+
+- Drift detection · multiple environments
+- **Policy as code — in Nix**, not in a second engine
+- RBAC, teams, audit
+- Secrets that never transit the Nix store
+- Scale: measure first, optimise only what is measured
+
+# {.center .heading-party-red}
+
+## Try it {.center}
+
+```sh
+nix run github:nivis-project/nivis#nivis -- --version
+```
+
+- Docs: <https://nivis-project.github.io/nivis/>
+- Code: <https://github.com/nivis-project/nivis>
+- ElastiNix: <https://github.com/wearetechnative/elastinix>
+
+::: {.fragment}
+It is early. That is exactly why now is a good time to break it.
+:::
+
+{{< include includes/_99_outro.qmd >}}
