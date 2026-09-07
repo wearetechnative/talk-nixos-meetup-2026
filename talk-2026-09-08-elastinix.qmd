@@ -216,6 +216,10 @@ A Vaultwarden stack on AWS
 - **Backup** configuration
 - Load balancer, or not — *code only, we won't run it*
 
+::: {.fragment}
+`wearetechnative/talk-nixos-meetup-2026` → `demos/elastinix-vaultwarden/`
+:::
+
 # Roadmap {.center .heading-party-blue}
 
 ## Roadmap {.center}
@@ -487,7 +491,20 @@ nix build ─▶ NixOS amazon image (.vhd)
 One expression. The OS **and** the cloud resources that ship it.
 :::
 
-<!-- TODO: point at the actual demo repo -->
+## Run it yourself {.center}
+
+```sh
+git clone https://github.com/nivis-project/nivis-demos
+nix develop
+
+./stackctl demo 000_backend apply --backend=local
+./stackctl demo 000_backend state migrate --to-remote
+```
+
+- Catstack layout: one domain, one state key
+- Every account-specific value in there is **deliberately fake**
+
+<!-- TODO: name the vaultwarden domain here once stack/NNN_… exists -->
 
 ## Demo 2 — Hetzner {.center}
 
@@ -503,12 +520,26 @@ Not an example. This is the box that runs the Nivis private beta.
 **No `nixos-anywhere`. No install step. The machine is a derivation.**
 :::
 
+## Demo 2 — what you can run {.center}
+
+- What I just showed is our **private** `infra` repo — real production
+- The same shape, disposable and readable, is a domain in
+  [`nivis-demos`](https://github.com/nivis-project/nivis-demos)
+
+::: {.fragment}
+We dogfood in private. We demo in public. Same tool, same layout.
+:::
+
 ## Demo 3 — the registry {.center}
 
 - Every OpenTofu provider is Nivis-compatible **by design**
 - So the registry does not port anything — it makes them **discoverable**
 - Documentation is **derived from the provider's own schema**, via `nivis gen`
 - Which means the docs always match the binary you actually run
+
+::: {.fragment}
+<https://github.com/nivis-project/registry>
+:::
 
 ## Modules, not just resources {.center}
 
@@ -558,7 +589,12 @@ nix run github:nivis-project/nivis#nivis -- --version
 
 - Docs: <https://nivis-project.github.io/nivis/>
 - Code: <https://github.com/nivis-project/nivis>
+- Demos: <https://github.com/nivis-project/nivis-demos>
 - ElastiNix: <https://github.com/wearetechnative/elastinix>
+
+::: {.highlight-text}
+**These slides:** <https://github.com/wearetechnative/talk-nixos-meetup-2026>
+:::
 
 ::: {.fragment}
 It is early. That is exactly why now is a good time to break it.
