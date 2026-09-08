@@ -8,14 +8,6 @@ document_number: TNW026001
 
 format: technative-theme-revealjs
 
-# The title slide carries the ElastiNix mark. Repeating the theme's background
-# colour is deliberate: setting title-slide-attributes here replaces the
-# extension's, it does not merge with it.
-title-slide-attributes:
-  data-background-color: "#112f41"
-  data-background-image: img/elastinix-logo.svg
-  data-background-size: 260px
-  data-background-position: 82% 42%
 date-format: "MMMM YYYY"
 incremental: false
 embed-resources: true
@@ -91,6 +83,8 @@ I dropped that plan.
 - **Terraform** and **Nix** are our core cloud technologies
 
 # ElastiNix {.center .heading-party-blue}
+
+![](img/elastinix-logo.svg){.absolute .on-top top=70 right=70 width="200"}
 
 Running NixOS smoothly on AWS
 
