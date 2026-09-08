@@ -338,7 +338,7 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 | | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
 |---|:--:|:--:|:--:|:--:|:--:|
 | Config language | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
-| Reuses TF providers | ✅ spawn | ✅ native | ✅ via TF | ⚠️ | ✅ bridge |
+| Reuses TF providers | ✅ spawn | ✅ native | ✅ via TF | ✅ *branch* | ✅ bridge |
 | Outputs feed back into config | ✅ | ⚠️ | ❌ | ⚠️ | ✅ |
 | OS build + cloud in one expression | ✅ | ❌ | ❌ | ⚠️ | ❌ |
 | License | Apache-2.0 | MPL-2.0 | MIT | — | Apache-2.0 |
@@ -346,6 +346,33 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 
 ::: {.fragment}
 Closest by *intent*: Terranix. Closest by *mechanism*: Pulumi. Neither is this.
+:::
+
+## About NixOps 4 {.center}
+
+Its `tfproto` branch drives real Terraform providers too — a Rust adapter
+that turns a provider's schema into NixOS module options.
+
+::: {.fragment}
+Same direction. I read that as **confirmation**, not competition.
+:::
+
+## About NixOps 4 {.center}
+
+Different choices, both defensible:
+
+::: {.small-table}
+| | NixOps 4 (`tfproto`) | Nivis |
+|---|---|---|
+| Adapter | Rust | Go |
+| Provider comes from | a Nix-packaged provider | the OpenTofu registry, checksum-verified |
+| Schema → Nix | IFD, at eval time | `nivis gen`, generated ahead of time |
+| Complex types | `types.raw` for now | schema-derived, nested blocks and all |
+:::
+
+::: {.fragment}
+If two people independently reach for the same coupling,
+the coupling is probably right.
 :::
 
 # How {.center .heading-party-blue}
