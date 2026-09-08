@@ -388,6 +388,7 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 ::: {.small-table}
 | Tool | In one line |
 |---|---|
+| **ElastiNix** | What you just saw. Nix builds the machine, Terraform ships it. Two languages, one direction, AWS only |
 | **Nivis** | Provider resources as first-class Nix values; spawns unmodified provider binaries |
 | OpenTofu / Terraform | The engine and the provider ecosystem. HCL, mature, everywhere |
 | Terranix | Generates HCL from Nix, then hands it to Terraform |
@@ -399,14 +400,19 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 ## Where Nivis actually differs {.center}
 
 ::: {.small-table}
-| | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
-|---|:--:|:--:|:--:|:--:|:--:|
-| Config language | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
-| Written in | Go | Go | Nix | Rust | Go |
-| How it uses TF providers | spawns them | native | generates HCL | in progress | compiles them |
-| Outputs feed back into config | yes | HCL refs only | no | yes | yes |
-| Providers come from | OpenTofu registry | its own registry | via TF | packaged in Nix | Pulumi registry |
-| License | Apache-2.0 | MPL-2.0 | MIT | LGPL-2.1 | Apache-2.0 |
+| | ElastiNix | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
+|---|:--:|:--:|:--:|:--:|:--:|:--:|
+| Config language | Nix **+** HCL | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
+| Written in | Nix | Go | Go | Nix | Rust | Go |
+| How it uses TF providers | through Terraform | spawns them | native | generates HCL | in progress | compiles them |
+| Outputs feed back into config | no | yes | HCL refs only | no | yes | yes |
+| Targets | AWS only | any provider | any | any | any | any |
+| License | Apache-2.0 | Apache-2.0 | MPL-2.0 | MIT | LGPL-2.1 | Apache-2.0 |
+:::
+
+::: {.fragment}
+Read the ElastiNix column downwards. Every cell that says *Nix **+** HCL*,
+*no*, or *AWS only* is a line of our own roadmap.
 :::
 
 ::: {.fragment}
