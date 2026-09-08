@@ -104,6 +104,21 @@ resource "aws_eip" "vaultwarden" {
   tags     = local.tags
 }
 
+# ── DNS ───────────────────────────────────────────────────────────────────
+# The zone is a pet owned elsewhere; the record is ours, and dies with the demo.
+data "aws_route53_zone" "primary" {
+  name         = var.dns_zone_name
+  private_zone = false
+}
+
+resource "aws_route53_record" "vaultwarden" {
+  zone_id = data.aws_route53_zone.primary.zone_id
+  name    = "vaultwarden.${var.environment_domain}"
+  type    = "A"
+  ttl     = 60
+  records = [aws_eip.vaultwarden.public_ip]
+}
+
 # ── backups ───────────────────────────────────────────────────────────────
 # The bucket name is derived from the same tfvars the NixOS config reads, so
 # neither side hard-codes it and they cannot drift apart.

@@ -13,7 +13,8 @@ output "ami_id" {
 }
 
 output "vault_url" {
-  value = "https://vaultwarden.${var.environment_domain}/"
+  value       = "https://vaultwarden.${aws_route53_record.vaultwarden.name}/"
+  description = "Live once the record propagates and ACME has issued."
 }
 
 output "backup_bucket" {

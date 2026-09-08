@@ -39,9 +39,28 @@ configuration without replacing the machine.
 ## Before you apply
 
 1. **Fill in `infra_environments/demo/demo.tfvars.json`** — account id, region,
-   VPC and subnet, availability zone, and the domain you control. Vaultwarden
+   VPC and subnet, availability zone, and the two DNS values below. Vaultwarden
    is served at `vaultwarden.<environment_domain>`, and nginx will ask Let's
    Encrypt for a certificate for exactly that name.
+
+   **DNS: the zone is not ours.** `dns_zone_name` is a Route 53 hosted zone
+   that already exists and is delegated at your registrar —
+   [`nivis-demos`](https://github.com/nivis-project/nivis-demos) `010_dns`
+   creates one. This demo looks it up by name with a data source and writes a
+   single A record; it never creates or destroys the zone, because a zone
+   outlives every machine that answers to it.
+
+   Give each demo its own leaf so two demos in one zone cannot collide:
+
+   ```json
+   "dns_zone_name":      "creative.tf",
+   "environment_domain": "elastinix.creative.tf"
+   ```
+
+   which serves the vault at `vaultwarden.elastinix.creative.tf`. Both the
+   instance and the zone must live in the same AWS account for the lookup to
+   resolve. The Elastic IP stays here, with the machine — an address that
+   outlives *this* demo would just be an orphan on your bill.
 2. **Put your SSH public key in `nix/authorized_keys.nix`**, and point
    `ssh_id_file` at the matching private key.
 3. **Create the Vaultwarden environment file out of band.** The module reads
