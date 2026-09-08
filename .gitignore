@@ -10,3 +10,8 @@ result-*
 .DS_Store
 
 /.quarto/
+
+# terraform / opentofu working state
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate*
