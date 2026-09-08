@@ -47,8 +47,14 @@ module "instance" {
   infra_environment = var.infra_environment
   aws_account_id    = var.aws_account_id
 
-  ec2nix_ami_id        = module.ami.ami_id
-  instance_type        = var.instance_type
+  ec2nix_ami_id = module.ami.ami_id
+  instance_type = var.instance_type
+
+  # ElastiNix builds the bootstrap image with virtualisation.diskSize = 16 GiB,
+  # so the snapshot is 17 GB and the module's 8 GB default is refused by
+  # RunInstances. The workload's own data lives on the separate volume below.
+  root_initial_size = 20
+
   availability_zone    = var.availability_zone
   subnet_id            = var.subnet_id
   vpc_id               = var.vpc_id
