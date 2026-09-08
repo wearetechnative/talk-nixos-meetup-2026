@@ -338,7 +338,7 @@ Code only — we will not run this one.
 - **Make the Terraform files unnecessary. Describe everything in Nix.**
 :::
 
-# Wait. Everything Nix... we fixed this {.center .heading-party-red}
+# Wait. Describe everything in Nix. we fixed this {.center .heading-party-red}
 
 ::: {.fragment}
 We fixed this **big time**.
@@ -348,9 +348,7 @@ We fixed this **big time**.
 
 ![](img/nivis-emblem.svg){width="240"}
 
-::: {.highlight-text}
 **We created Nivis.**
-:::
 
 <!-- TODO: one strong line under the name. Brainstorm tomorrow. -->
 
@@ -447,54 +445,9 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 | License | Apache-2.0 | Apache-2.0 | MPL-2.0 | MIT | LGPL-2.1 | Apache-2.0 |
 :::
 
-::: {.fragment}
-Nivis is ~2000 lines of pure Nix — `mkResource`, `refAttr`, `toIR` — in front
-of a Go executor that does nothing but talk to providers. The Nix half is the
-product; the compiled half is plumbing.
-:::
-
-::: {.fragment}
-Read the ElastiNix column downwards. Every cell that says *Nix **+** HCL*,
-*no*, or *AWS only* is a line of our own roadmap.
-:::
-
-::: {.fragment}
-Closest by **intent** — and on that branch, by **mechanism** too: **NixOps 4**.
-
-Pulumi rides the same providers, but compiles them.
-Terranix shares the language, not the ambition.
-:::
-
-## About NixOps 4 {.center}
-
-Its `tfproto` branch drives real Terraform providers too — a Rust adapter
-that turns a provider's schema into NixOS module options.
-
-::: {.fragment}
-Same direction. I read that as **confirmation**, not competition.
-:::
-
-## About NixOps 4 {.center}
-
-Read their own manual and you find this:
-
-> "one model of the world instead of IaC islands"
-
-::: {.fragment}
-That is the same sentence I have been building towards all evening.
-:::
-
 ## NixOps 4 — the real difference {.center}
 
-Not the round trip. **They have it too** — outputs come back into Nix there,
-and their graph topology can be computed from those outputs. It is
-implemented and tested.
-
-::: {.fragment}
-I would rather tell you that than have you find out afterwards.
-:::
-
-## NixOps 4 — the real difference {.center}
+NixOps4 is closest by **intent** — and on that branch, by **mechanism** too.
 
 ::: {.small-table}
 | | NixOps 4 | Nivis |

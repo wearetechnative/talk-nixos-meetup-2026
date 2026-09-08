@@ -13,7 +13,7 @@ output "ami_id" {
 }
 
 output "vault_url" {
-  value       = "https://vaultwarden.${aws_route53_record.vaultwarden.name}/"
+  value       = "https://${aws_route53_record.vaultwarden.name}/"
   description = "Live once the record propagates and ACME has issued."
 }
 

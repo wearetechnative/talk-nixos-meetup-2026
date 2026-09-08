@@ -57,9 +57,6 @@ module "instance" {
   live_config_path = var.ec2_host_live_path
   ssh_id_file      = var.ssh_id_file
 
-  # The vault and the database live here, not on the root volume.
-  ebs_volume_id = aws_ebs_volume.data.id
-
   # HTTP is only open so ACME can answer the challenge; HTTPS is the vault.
   # Nothing else is reachable — the deployment itself goes over SSM.
   ingress_rules = [
@@ -95,6 +92,16 @@ resource "aws_ebs_volume" "data" {
   lifecycle {
     prevent_destroy = true
   }
+}
+
+# Attached here rather than through the module: the module gates its own
+# attachment on `count = var.ebs_volume_id != "" ? 1 : 0`, and a count cannot
+# depend on a value that does not exist until apply. Attaching it ourselves has
+# no such condition to evaluate.
+resource "aws_volume_attachment" "data" {
+  device_name = "/dev/xvdb"
+  volume_id   = aws_ebs_volume.data.id
+  instance_id = module.instance.instance_id
 }
 
 # A stable address, so the DNS record survives replacing the machine.
