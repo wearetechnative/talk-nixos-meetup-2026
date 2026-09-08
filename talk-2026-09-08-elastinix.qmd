@@ -338,10 +338,10 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 | | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
 |---|:--:|:--:|:--:|:--:|:--:|
 | Config language | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
-| Reuses TF providers | ✅ spawn | ✅ native | ✅ via TF | ✅ *branch* | ✅ bridge |
-| Outputs feed back into config | ✅ | ⚠️ | ❌ | ⚠️ | ✅ |
-| OS build + cloud in one expression | ✅ | ❌ | ❌ | ⚠️ | ❌ |
-| License | Apache-2.0 | MPL-2.0 | MIT | — | Apache-2.0 |
+| How it uses TF providers | spawns them | native | generates HCL | in progress | compiles them |
+| Outputs feed back into config | yes | HCL refs only | no | yes | yes |
+| Graph topology | grows per phase | static | static | static | dynamic |
+| License | Apache-2.0 | MPL-2.0 | MIT | LGPL-2.1 | Apache-2.0 |
 :::
 
 ::: {.fragment}
@@ -359,20 +359,29 @@ Same direction. I read that as **confirmation**, not competition.
 
 ## About NixOps 4 {.center}
 
-Different choices, both defensible:
+Read their own manual and you find this:
+
+> "one model of the world instead of IaC islands"
+
+::: {.fragment}
+That is the same sentence I have been building towards all evening.
+:::
+
+## NixOps 4 — the real difference {.center}
 
 ::: {.small-table}
-| | NixOps 4 (`tfproto`) | Nivis |
+| | NixOps 4 | Nivis |
 |---|---|---|
-| Adapter | Rust | Go |
-| Provider comes from | a Nix-packaged provider | the OpenTofu registry, checksum-verified |
-| Schema → Nix | IFD, at eval time | `nivis gen`, generated ahead of time |
-| Complex types | `types.raw` for now | schema-derived, nested blocks and all |
+| What it is | a **platform**: a resource-provider interface anyone can implement | only the Terraform-provider coupling |
+| Terraform providers | one provider kind among many; *in progress* | the entire mechanism |
+| Adapter | Rust; schema → NixOS module options via IFD | Go; `nivis gen` constructors, generated ahead |
+| Graph topology | **static** | grows: a re-evaluation can unlock more |
+| License | LGPL-2.1 | Apache-2.0 |
 :::
 
 ::: {.fragment}
-If two people independently reach for the same coupling,
-the coupling is probably right.
+Different scope, not a winner. If two people independently reach for the
+same coupling, the coupling is probably right.
 :::
 
 # How {.center .heading-party-blue}
