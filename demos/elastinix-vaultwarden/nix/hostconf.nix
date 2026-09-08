@@ -94,13 +94,33 @@
       RemainAfterExit = true;
       UMask = "0077";
       ExecStart = pkgs.writeShellScript "vaultwarden-env" ''
-        set -euo pipefail
-        ${pkgs.awscli2}/bin/aws ssm get-parameter \
-          --region ${tfvars.aws_region} \
-          --name "/vaultwarden/${tfvars.infra_environment}/env" \
-          --with-decryption --query Parameter.Value --output text \
-          > /vaultwarden/vaultwarden.env
-        chmod 0600 /vaultwarden/vaultwarden.env
+        set -uo pipefail
+        target=/vaultwarden/vaultwarden.env
+
+        # The parameter is the primary source — it is where anything genuinely
+        # secret belongs (ADMIN_TOKEN, SMTP credentials).
+        if ${pkgs.awscli2}/bin/aws ssm get-parameter \
+             --region ${tfvars.aws_region} \
+             --name "/vaultwarden/${tfvars.infra_environment}/env" \
+             --with-decryption --query Parameter.Value --output text \
+             > "$target.new" 2>/dev/null; then
+          echo "environment taken from SSM"
+        else
+          # No parameter set: fall back to the settings that are not secret, so
+          # the service still starts. Postgres is reached over its Unix socket,
+          # so there is no password here to keep out of the Nix store.
+          echo "no SSM parameter — using non-secret defaults" >&2
+          ${pkgs.coreutils}/bin/printf '%s\n' \
+            'DATABASE_URL=postgresql:///vaultwarden?host=/run/postgresql' \
+            'DOMAIN=https://vaultwarden.${tfvars.environment_domain}' \
+            'ROCKET_ADDRESS=127.0.0.1' \
+            'ROCKET_PORT=8222' \
+            'SIGNUPS_ALLOWED=false' \
+            > "$target.new"
+        fi
+
+        ${pkgs.coreutils}/bin/chmod 0600 "$target.new"
+        ${pkgs.coreutils}/bin/mv "$target.new" "$target"
       '';
     };
   };
