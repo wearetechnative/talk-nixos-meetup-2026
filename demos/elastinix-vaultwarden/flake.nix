@@ -25,6 +25,12 @@
 
           machineArgs = {
             inherit nixpkgs;
+            # OpenTofu, not Terraform: MPL-2.0 rather than BUSL, and it matches
+            # the lock file and the devshell.
+            terraformBinConf = {
+              distribution = "opentofu";
+              version = "1-8-7";
+            };
             machineConfig = import ./nix/hostconf.nix;
             targetSystem = "x86_64-linux";
             rootAuthorizedKeys = import ./nix/authorized_keys.nix;

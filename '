@@ -7,15 +7,6 @@ lang: en
 document_number: TNW026001
 
 format: technative-theme-revealjs
-
-# The title slide carries the ElastiNix mark. Repeating the theme's background
-# colour is deliberate: setting title-slide-attributes here replaces the
-# extension's, it does not merge with it.
-title-slide-attributes:
-  data-background-color: "#112f41"
-  data-background-image: img/elastinix-logo.svg
-  data-background-size: 260px
-  data-background-position: 82% 42%
 date-format: "MMMM YYYY"
 incremental: false
 embed-resources: true
@@ -51,7 +42,7 @@ include-in-header:
 
 ### I loved the core idea of Nix but I hated the syntax...
 
-I care about the aesthetics of source code. I loved Ruby.
+I care about the aesthetics of source code. So I love Ruby.
 
 ```ruby
 5.times do
@@ -59,7 +50,7 @@ I care about the aesthetics of source code. I loved Ruby.
 end
 ```
 
-Compared to Nix ...
+Compared to ...
 
 ```nix
 let
@@ -73,11 +64,7 @@ in loop 5
 ::: {.fragment}
 I dropped that plan.
 
-**Nix grows on you.**
-:::
-
-::: {.fragment}
-### Now I want *everything* described in Nix.
+**Nix grows on you.** Now I want *everything* described in Nix.
 :::
 
 # TechNative {.center .heading-party-blue}
@@ -85,21 +72,15 @@ I dropped that plan.
 ## TechNative {.center}
 
 - Almost **7 years** old, based in Amersfoort, NL
-- We do fun cloud and AI stuff and we do smart FinOps as well
+- We do fun cloud and AI stuff: **Cloud Engineering** · **Cloud Financial
+  Management** · **AI**
 - **AWS Advanced Partner** — DevOps competency, ISO 27001, 100+ launches
 - **Open source first**: 80+ public repositories, Apache-2.0
-- **Terraform** and **Nix** are our core cloud technologies
+- **Terraform** and **Nix** are our core technologies
 
 # ElastiNix {.center .heading-party-blue}
 
 Running NixOS smoothly on AWS
-
-
-<!-- For Pim
-- Who runs NixOS in production on a server?
-- Who runs NixOS in the public in public cloud?
-- Who runs NixOS in AWS on EC2 or ECS?
--->
 
 ## Why we built it {.center}
 
@@ -109,12 +90,16 @@ Running NixOS smoothly on AWS
 - Made for **GitOps**
 - **One command** deploys both: the NixOS machine and the Terraform infra
 
-## A blog post which started everything {.center}
+## Where it came from {.center}
 
 > "Terraform and Nix are both pieces of software whose success comes from their
 > ability to provide a declarative interface to a procedural world."
 
 *Jonas Carpay, 2022 — [End-to-end declarative deployment](https://jonascarpay.com/posts/2022-09-19-declarative-deployment.html)*
+
+::: {.fragment}
+That post is the seed of ElastiNix. We owe it everything.
+:::
 
 ## Where it came from {.center}
 
@@ -182,16 +167,20 @@ That is the whole trick.
 
 Two ways to get a machine onto AWS.
 
+::: {.highlight-text}
 **Baked**
 
 1. Build the **full** NixOS image
 2. Terraform uploads it, imports the snapshot, registers the AMI, boots it
+:::
 
+::: {.highlight-text}
 **Brewed**
 
 1. Build a **minimal** NixOS image
 2. Terraform uploads, imports, boots it
 3. Copy the rest of the closure onto the running machine
+:::
 
 ## Baked vs. Brewed — when {.center}
 
