@@ -213,17 +213,81 @@ OptScale · Jira sync
 
 A Vaultwarden stack on AWS
 
-## Demo {.center}
+## Demo — the files {.center}
 
-- The **flake**
-- The **host config**
-- The **deploy**
-- **Backup** configuration
-- Load balancer, or not — *code only, we won't run it*
+```
+flake.nix                 demoPlan · demoApply · demoDestroy
+nix/hostconf.nix          the machine
+infra_environments/demo/  account, region, domain, subnet
+terraform/                AMI · instance · volume · address · IAM · backups
+```
 
 ::: {.fragment}
-`wearetechnative/talk-nixos-meetup-2026` → `demos/elastinix-vaultwarden/`
+`demos/elastinix-vaultwarden/` — in this repo.
 :::
+
+## The machine {.center}
+
+```nix
+elastinix.services.vaultwarden.enable       = true;
+elastinix.services.postgresql.enable        = true;
+elastinix.services.nginx.enable             = true;
+elastinix.services.cloudwatch-agent.enable  = true;
+```
+
+- The vhost, the ACME certificate and TLS come with the module
+- The word "AWS" does not appear in this file
+
+## Run it {.center}
+
+```sh
+nix run .#demoPlan
+nix run .#demoApply
+nix run .#demoDestroy
+```
+
+::: {.fragment}
+One command builds the image, uploads it, registers the AMI, boots the
+machine, and deploys the configuration onto it.
+:::
+
+## Properties {.center}
+
+::: {.small-table}
+| | |
+|---|---|
+| Vault and database | their own EBS volume, `prevent_destroy` |
+| Address | Elastic IP — DNS does not churn when the machine is replaced |
+| Ingress | 80 for ACME, 443 for the vault. Nothing else |
+| Deployment path | SSM. No public SSH |
+| Secrets | an env file, delivered out of band — never in the Nix store |
+| Backups | nightly `pg_dump` to S3; the instance may write, nothing more |
+| Config change | new store path → deploy onto the running machine |
+| Image change | new AMI → new instance, volume and address survive |
+:::
+
+## One name, two languages {.center}
+
+```nix
+# nix/hostconf.nix
+bucket = "vaultwarden-${tfvars.infra_environment}-${tfvars.aws_account_id}-backups";
+```
+
+```hcl
+# terraform/main.tf
+bucket = "vaultwarden-${var.infra_environment}-${var.aws_account_id}-backups"
+```
+
+::: {.fragment}
+Same file, read twice. Neither side hard-codes it — and that is still two
+languages agreeing by hand.
+
+**Hold that thought.**
+:::
+
+## Load balancer, or not {.center}
+
+Code only — we will not run this one.
 
 # Roadmap {.center .heading-party-blue}
 

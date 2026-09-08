@@ -104,6 +104,71 @@ resource "aws_eip" "vaultwarden" {
   tags     = local.tags
 }
 
+# ── backups ───────────────────────────────────────────────────────────────
+# The bucket name is derived from the same tfvars the NixOS config reads, so
+# neither side hard-codes it and they cannot drift apart.
+resource "aws_s3_bucket" "backups" {
+  bucket = "vaultwarden-${var.infra_environment}-${var.aws_account_id}-backups"
+  tags   = local.tags
+}
+
+resource "aws_s3_bucket_public_access_block" "backups" {
+  bucket                  = aws_s3_bucket.backups.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "backups" {
+  bucket = aws_s3_bucket.backups.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "backups" {
+  bucket = aws_s3_bucket.backups.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "backups" {
+  bucket = aws_s3_bucket.backups.id
+
+  rule {
+    id     = "expire-old-dumps"
+    status = "Enabled"
+    filter {
+      prefix = "postgres/"
+    }
+    expiration {
+      days = 30
+    }
+    noncurrent_version_expiration {
+      noncurrent_days = 7
+    }
+  }
+}
+
+# The instance may write its dumps, and nothing else.
+resource "aws_iam_role_policy" "backups" {
+  name = "${local.name}-backups"
+  role = aws_iam_role.vaultwarden.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:PutObject"]
+      Resource = "${aws_s3_bucket.backups.arn}/postgres/*"
+    }]
+  })
+}
+
 # ── the instance's own permissions ────────────────────────────────────────
 resource "aws_iam_role" "vaultwarden" {
   name = "${local.name}-role"

@@ -15,3 +15,8 @@ output "ami_id" {
 output "vault_url" {
   value = "https://vaultwarden.${var.environment_domain}/"
 }
+
+output "backup_bucket" {
+  value       = aws_s3_bucket.backups.bucket
+  description = "Nightly pg_dump lands here; the NixOS config derives the same name."
+}

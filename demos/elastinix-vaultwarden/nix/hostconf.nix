@@ -34,6 +34,45 @@
   # ── AWS-side integration ElastiNix ships ─────────────────────────────────
   elastinix.services.cloudwatch-agent.enable = true;
 
+  # ── backups ──────────────────────────────────────────────────────────────
+  # ElastiNix ships a psqldump service, but it is wired to Twenty CRM. This is
+  # the demo's own: a nightly dump to S3.
+  #
+  # Note where the bucket name comes from — the *same* tfvars the terraform
+  # reads. Both sides derive it; neither hard-codes it. That is the single
+  # source of truth doing something visible.
+  systemd.timers.vaultwarden-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-*-* 01:30:00";
+      RandomizedDelaySec = "15m";
+      Persistent = true;
+      Unit = "vaultwarden-backup.service";
+    };
+  };
+
+  systemd.services.vaultwarden-backup = {
+    serviceConfig = {
+      Type = "oneshot";
+      User = "postgres";
+      # Credentials come from the instance profile, which terraform grants
+      # write access to exactly this one bucket.
+      ExecStart =
+        let
+          bucket = "vaultwarden-${tfvars.infra_environment}-${tfvars.aws_account_id}-backups";
+          script = pkgs.writeShellScript "vaultwarden-backup" ''
+            set -euo pipefail
+            stamp="$(${pkgs.coreutils}/bin/date -u +%Y-%m-%dT%H%M%SZ)"
+            ${pkgs.postgresql}/bin/pg_dump vaultwarden \
+              | ${pkgs.gzip}/bin/gzip -9 \
+              | ${pkgs.awscli2}/bin/aws s3 cp - \
+                  "s3://${bucket}/postgres/vaultwarden-$stamp.sql.gz"
+          '';
+        in
+        "${script}";
+    };
+  };
+
   # ── persistence ──────────────────────────────────────────────────────────
   # The vault and the database live on an attached EBS volume, so replacing
   # the instance does not take the data with it. `ebs_volume_id` in terraform
