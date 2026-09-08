@@ -30,30 +30,35 @@ quarto render talk-2026-09-08-elastinix.qmd   # -> output/
 
 **The Nivis demos live with Nivis**, in
 [`nivis-project/nivis-demos`](https://github.com/nivis-project/nivis-demos) —
-self-contained catstack-style stacks with their own `stackctl`, tests and gate:
+self-contained catstack-style domains with their own `stackctl`, tests and gate:
 
 ```sh
 git clone https://github.com/nivis-project/nivis-demos
 cd nivis-demos
 nix develop
+
 ./stackctl demo 000_backend apply --backend=local     # bootstrap the state bucket
 ./stackctl demo 000_backend state migrate --to-remote
+./stackctl demo 010_dns apply                         # the hosted zone
+./stackctl demo 020_vaultwarden_ec2 apply             # the workload
 ```
 
 Every account-specific value in that repo is deliberately fake; read its
-*Before you apply anything* section before applying, and supply your own state
-bucket name.
+*Before you apply anything* section first, and supply your own state bucket name.
 
 ## Links
 
 | | |
-|---|---|
-| ElastiNix | <https://github.com/wearetechnative/elastinix> |
-| ElastiNix Terraform module | <https://github.com/wearetechnative/terraform-aws-module-elastinix> |
-| Nivis | <https://github.com/nivis-project/nivis> |
-| Nivis docs | <https://nivis-project.github.io/nivis/> |
-| Nivis demos | <https://github.com/nivis-project/nivis-demos> |
-| Introducing Nivis | <https://technative.eu/en/blog/introducing-nivis/> |
+| --------------------------- | -------------------------------------------------------------- |
+| ElastiNix                   | <https://github.com/wearetechnative/elastinix>                   |
+| ElastiNix Terraform module  | <https://github.com/wearetechnative/terraform-aws-module-elastinix> |
+| Nivis                       | <https://github.com/nivis-project/nivis>                         |
+| Nivis docs                  | <https://nivis-project.github.io/nivis/>                         |
+| Nivis demos                 | <https://github.com/nivis-project/nivis-demos>                   |
+| Nivis registry              | <https://github.com/nivis-project/registry>                      |
+| Amplify site module         | <https://github.com/wearetechnative/nivis-aws-amplify-site>      |
+| Form endpoint module        | <https://github.com/wearetechnative/nivis-aws-form-action>       |
+| Introducing Nivis (blog)    | <https://technative.eu/en/blog/introducing-nivis/>               |
 
 ## Credits
 

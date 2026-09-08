@@ -20,6 +20,11 @@ include-in-header:
   - text: |
       <style>
       .reveal pre code { color: #112f41; }
+      /* compact tables, for the comparison and colophon slides */
+      .small-table table { font-size: 0.55em; }
+      .small-table td, .small-table th { padding: .15em .5em; }
+      /* put an .absolute image above the text instead of behind it */
+      .on-top { z-index: 10; }
       </style>
 ---
 
@@ -314,6 +319,35 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 **Nix is the configuration. The provider does the work.**
 :::
 
+## The neighbours {.center}
+
+::: {.small-table}
+| Tool | In one line |
+|---|---|
+| **Nivis** | Provider resources as first-class Nix values; spawns unmodified provider binaries |
+| OpenTofu / Terraform | The engine and the provider ecosystem. HCL, mature, everywhere |
+| Terranix | Generates HCL from Nix, then hands it to Terraform |
+| NixOps 4 | Nix-native deployment orchestrator, NixOS-deployment heritage |
+| Pulumi | Real languages; reuses TF providers by **compiling** them through a bridge |
+| CDK / CloudFormation | Real languages synthesizing CloudFormation. AWS-first |
+:::
+
+## Where Nivis actually differs {.center}
+
+::: {.small-table}
+| | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
+|---|:--:|:--:|:--:|:--:|:--:|
+| Config language | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
+| Reuses TF providers | ✅ spawn | ✅ native | ✅ via TF | ⚠️ | ✅ bridge |
+| Outputs feed back into config | ✅ | ⚠️ | ❌ | ⚠️ | ✅ |
+| OS build + cloud in one expression | ✅ | ❌ | ❌ | ⚠️ | ❌ |
+| License | Apache-2.0 | MPL-2.0 | MIT | — | Apache-2.0 |
+:::
+
+::: {.fragment}
+Closest by *intent*: Terranix. Closest by *mechanism*: Pulumi. Neither is this.
+:::
+
 # How {.center .heading-party-blue}
 
 ## The hard part: two ideas of time {.center}
@@ -473,61 +507,46 @@ Maturity is a feature too — and there Terraform and Pulumi lead.
 
 # Demos {.center .heading-party-green}
 
-## Demo 1 — the same stack, in Nivis {.center}
+## Demo 1 — Vaultwarden on EC2 {.center}
 
-The Vaultwarden stack you just saw, on AWS — no Terraform module.
+The same workload you just saw, driven by Nivis — no Terraform module.
 
 ```
-nix build ─▶ NixOS amazon image (.vhd)
-                   │
-  Nivis ── aws_s3_bucket + aws_s3_object      upload the image
-        ── aws_ebs_snapshot_import            .vhd → EBS snapshot
-        ── aws_ami                            register it
-        ── aws_security_group
-        ── aws_instance                       launch it
+nix build ─▶ NixOS image ─▶ AMI ─▶ EC2 ─▶ Caddy + TLS
 ```
+
+- The vault lives on its **own EBS volume**, the address on an **Elastic IP**
+- So replacing the machine keeps both
+- The DNS record is bound from the allocated address **inside the same apply**
 
 ::: {.fragment}
-One expression. The OS **and** the cloud resources that ship it.
+That binding is the round trip, doing real work.
 :::
 
-## Run it yourself {.center}
+## Two domains, on purpose {.center}
 
 ```sh
-git clone https://github.com/nivis-project/nivis-demos
-nix develop
-
-./stackctl demo 000_backend apply --backend=local
-./stackctl demo 000_backend state migrate --to-remote
+./stackctl demo 010_dns              apply   # the hosted zone
+./stackctl demo 020_vaultwarden_ec2  apply   # the workload
 ```
 
-- Catstack layout: one domain, one state key
-- Every account-specific value in there is **deliberately fake**
-
-<!-- TODO: name the vaultwarden domain here once stack/NNN_… exists -->
-
-## Demo 2 — Hetzner {.center}
-
-Not an example. This is the box that runs the Nivis private beta.
-
-- Our **own provider**: `terraform-provider-hcloudimage` — Nivis's first
-  protocol-v6 provider
-- The image is a flake package: uploaded, snapshotted, booted
-- Round trip in **one apply**: snapshot id → server, primary IP → DNS records
-- The server is cattle; the primary IP and the volume are the pets
+- A zone **outlives** every machine it points at
+- Destroying a demo must not take your name servers with it
 
 ::: {.fragment}
-**No `nixos-anywhere`. No install step. The machine is a derivation.**
+The admin token is delivered out of band, through SSM.
+**No secret enters an IR, a plan, or a state file.**
 :::
 
-## Demo 2 — what you can run {.center}
+## Demo 2 — the same workload, on Hetzner {.center}
 
-- What I just showed is our **private** `infra` repo — real production
-- The same shape, disposable and readable, is a domain in
-  [`nivis-demos`](https://github.com/nivis-project/nivis-demos)
+- `nixos/vaultwarden` is a **cloud-agnostic module**
+- The Hetzner demo imports it **unchanged**
+- Booted from a Nix-built snapshot, through our own
+  `terraform-provider-hcloudimage`
 
 ::: {.fragment}
-We dogfood in private. We demo in public. Same tool, same layout.
+One workload description. Two clouds. Nothing rewritten.
 :::
 
 ## Demo 3 — the registry {.center}
@@ -543,11 +562,12 @@ We dogfood in private. We demo in public. Same tool, same layout.
 
 ## Modules, not just resources {.center}
 
-- A **website** on Amplify
-- A **form endpoint**: altcha proof-of-work captcha → Lambda → SES
+- **`nivis-aws-amplify-site`** — a GitHub-connected Amplify site
+- **`nivis-aws-form-action`** — altcha proof-of-work captcha → Lambda → SES
 
 ::: {.fragment}
-That form endpoint is not a demo — it is the contact form on technative.eu.
+Both public, both plain Nivis modules. That form endpoint is what answers
+the contact form on technative.eu.
 :::
 
 # Roadmap {.center .heading-party-blue}
@@ -600,4 +620,39 @@ nix run github:nivis-project/nivis#nivis -- --version
 It is early. That is exactly why now is a good time to break it.
 :::
 
-{{< include includes/_99_outro.qmd >}}
+## Everything in one place {.center}
+
+::: {.small-table}
+| | |
+|---|---|
+| **These slides** | `wearetechnative/talk-nixos-meetup-2026` |
+| ElastiNix | `wearetechnative/elastinix` |
+| ElastiNix Terraform module | `wearetechnative/terraform-aws-module-elastinix` |
+| Nivis | `nivis-project/nivis` |
+| Nivis docs | <https://nivis-project.github.io/nivis/> |
+| Nivis demos | `nivis-project/nivis-demos` |
+| Registry | `nivis-project/registry` |
+| Amplify module | `wearetechnative/nivis-aws-amplify-site` |
+| Form module | `wearetechnative/nivis-aws-form-action` |
+| Introducing Nivis | <https://technative.eu/en/blog/introducing-nivis/> |
+:::
+
+## Colophon {.center}
+
+::: {.small-table}
+| | |
+|---|---|
+| Talk | Pim Snel — Architect, TechNative |
+| Slides | Quarto + reveal.js, Apache-2.0 |
+| ElastiNix owes its core design to | Jonas Carpay, *End-to-end declarative deployment* (2022) |
+| Nivis | Apache-2.0. No BUSL anywhere |
+:::
+
+<!--
+IMAGES ON TOP OF THE TEXT
+  ![](img/thing.png){.absolute .on-top top=120 left=560 width="380"}
+    .absolute      position it yourself: top/left/right/bottom/width/height (px)
+    .on-top        z-index 10, so it lands above the text instead of behind it
+    add .fragment  to make it appear on a click
+  Stacked in the middle instead of positioned:  ::: {.r-stack} … :::
+-->
