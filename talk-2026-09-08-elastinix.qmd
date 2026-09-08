@@ -341,7 +341,7 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 | Written in | Go | Go | Nix | Rust | Go |
 | How it uses TF providers | spawns them | native | generates HCL | in progress | compiles them |
 | Outputs feed back into config | yes | HCL refs only | no | yes | yes |
-| Graph topology | grows per phase | static | static | static | dynamic |
+| Providers come from | OpenTofu registry | its own registry | via TF | packaged in Nix | Pulumi registry |
 | License | Apache-2.0 | MPL-2.0 | MIT | LGPL-2.1 | Apache-2.0 |
 :::
 
@@ -373,20 +373,29 @@ That is the same sentence I have been building towards all evening.
 
 ## NixOps 4 — the real difference {.center}
 
+Not the round trip. **They have it too** — outputs come back into Nix there,
+and their graph topology can be computed from those outputs. It is
+implemented and tested.
+
+::: {.fragment}
+I would rather tell you that than have you find out afterwards.
+:::
+
+## NixOps 4 — the real difference {.center}
+
 ::: {.small-table}
 | | NixOps 4 | Nivis |
 |---|---|---|
-| What it is | a **platform**: a resource-provider interface anyone can implement | only the Terraform-provider coupling |
-| Terraform providers | one provider kind among many; *in progress* | the entire mechanism |
-| Adapter | Rust; schema → NixOS module options via IFD | Go; `nivis gen` constructors, generated ahead |
-| Graph topology | **static** | grows: a re-evaluation can unlock more |
+| What it is | a **platform**: its own resource-provider interface | only the Terraform-provider coupling |
+| Terraform providers | *in progress*; one provider kind among many | the whole mechanism — every OpenTofu provider, day one |
+| Written in | Rust | Go |
+| Providers come from | packaged in Nix | the OpenTofu registry, checksum-verified |
 | License | LGPL-2.1 | Apache-2.0 |
 :::
 
 ::: {.fragment}
-So what is left is **scope**: they are building a platform. This is one coupling.
-
-If two people independently reach for that coupling, it is probably right.
+So it is **scope**, and it is licensing. They are building a platform.
+This is one coupling — and you can build a business on Apache-2.0.
 :::
 
 # How {.center .heading-party-blue}
