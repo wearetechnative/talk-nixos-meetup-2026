@@ -184,6 +184,26 @@ resource "aws_iam_role_policy" "backups" {
   })
 }
 
+# ── the secret ────────────────────────────────────────────────────────────
+# Declared here so the name is one fact, not two; the VALUE is put in out of
+# band and never enters terraform state:
+#
+#   aws ssm put-parameter --type SecureString --name /vaultwarden/demo/env \
+#     --value file://vaultwarden.env
+resource "aws_iam_role_policy" "vaultwarden_env" {
+  name = "${local.name}-env"
+  role = aws_iam_role.vaultwarden.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ssm:GetParameter"]
+      Resource = "arn:aws:ssm:${var.aws_region}:${var.aws_account_id}:parameter/vaultwarden/${var.infra_environment}/env"
+    }]
+  })
+}
+
 # ── the instance's own permissions ────────────────────────────────────────
 resource "aws_iam_role" "vaultwarden" {
   name = "${local.name}-role"

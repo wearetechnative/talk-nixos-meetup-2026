@@ -63,10 +63,37 @@ configuration without replacing the machine.
    outlives *this* demo would just be an orphan on your bill.
 2. **Put your SSH public key in `nix/authorized_keys.nix`**, and point
    `ssh_id_file` at the matching private key.
-3. **Create the Vaultwarden environment file out of band.** The module reads
-   `/vaultwarden/vaultwarden.env`; it holds `DATABASE_URL`, `ADMIN_TOKEN` and
-   any SMTP settings. It is deliberately *not* Nix-managed: a value written in
-   Nix lands in the world-readable store.
+3. **Put the Vaultwarden environment file in SSM, before you apply.** It holds
+   `DATABASE_URL`, `ADMIN_TOKEN` and any SMTP settings, and is deliberately not
+   Nix-managed: a value written in Nix lands in the world-readable store.
+
+   ```sh
+   cat > vaultwarden.env <<'EOF'
+   DATABASE_URL=postgresql://vaultwarden@127.0.0.1/vaultwarden
+   ADMIN_TOKEN=<a long random string>
+   DOMAIN=https://vaultwarden.elastinix.creative.tf
+   ROCKET_PORT=8222
+   EOF
+
+   aws ssm put-parameter --type SecureString \
+     --name /vaultwarden/demo/env --value file://vaultwarden.env
+   rm vaultwarden.env
+   ```
+
+   A `vaultwarden-env` unit fetches it at activation, writes it `0600`, and
+   runs before `vaultwarden.service`. Terraform grants the instance
+   `ssm:GetParameter` on that one parameter and nothing else. The value never
+   enters Terraform state.
+
+4. **The data volume formats itself on first boot** — a fresh EBS volume has no
+   filesystem. `format-data-volume` labels the one attached disk that carries
+   none, and `/data` mounts by that label.
+
+   This is the demo's one piece of guesswork, and it is there for a reason: the
+   clean way is to address the volume by its **volume id**, which AWS exposes as
+   a stable `/dev/disk/by-id` symlink — but that id does not exist until
+   Terraform has created the volume, and ElastiNix cannot hand a Terraform
+   output back to Nix. Worth remembering when you reach the roadmap.
 
 ## Run it
 
