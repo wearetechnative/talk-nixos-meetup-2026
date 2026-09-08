@@ -403,11 +403,17 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 | | ElastiNix | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|
 | Config language | Nix **+** HCL | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
-| Written in | Nix | Go | Go | Nix | Rust | Go |
+| Written in | Nix | **Nix** + Go | Go | Nix | **Nix** + Rust | Go |
 | How it uses TF providers | through Terraform | spawns them | native | generates HCL | in progress | compiles them |
 | Outputs feed back into config | no | yes | HCL refs only | no | yes | yes |
 | Targets | AWS only | any provider | any | any | any | any |
 | License | Apache-2.0 | Apache-2.0 | MPL-2.0 | MIT | LGPL-2.1 | Apache-2.0 |
+:::
+
+::: {.fragment}
+Nivis is ~2000 lines of pure Nix — `mkResource`, `refAttr`, `toIR` — in front
+of a Go executor that does nothing but talk to providers. The Nix half is the
+product; the compiled half is plumbing.
 :::
 
 ::: {.fragment}
