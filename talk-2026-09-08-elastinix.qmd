@@ -145,6 +145,33 @@ Split the machine in two:
 Change your application → you do **not** reprovision the hardware.
 :::
 
+## Features {.center}
+
+- A **remote library flake** — shared modules across every client project
+- **Auto Scaling Groups**
+- The matching **Terraform module**, so the infra ships with the machine
+- **Smol** — work in progress: making the images as small as we can
+
+## Made for AWS {.center}
+
+- EC2-optimized **kernel drivers**
+- **CloudWatch** integration
+- **SSM Agent** — deployment over SSM, no public SSH
+- **agenix** for secrets
+
+## The module library {.center}
+
+What grew on top, from real projects:
+
+- Vaultwarden
+- Prometheus & Grafana
+- central vulnerability scanning (vulnix + trivy)
+- Postfix/SES relay
+- Atuin
+- Documenso
+- OptScale
+- Twenty CRM
+
 ## Architecture {.center}
 
 ```
@@ -217,30 +244,6 @@ Two ways to get a machine onto AWS.
 
 ::: {.fragment}
 Brewed is also how you *develop* the image that will later be baked into an ASG.
-:::
-
-## Features {.center}
-
-- A **remote library flake** — shared modules across every client project
-- **Auto Scaling Groups**
-- The matching **Terraform module**, so the infra ships with the machine
-- **Smol** — work in progress: making the images as small as we can
-
-## Made for AWS {.center}
-
-- EC2-optimized **kernel drivers**
-- **CloudWatch** integration
-- **SSM Agent** — deployment over SSM, no public SSH
-- **agenix** for secrets
-
-## The module library {.center}
-
-What grew on top, from real projects:
-
-::: {.highlight-text}
-Prometheus & Grafana · health checks · central vulnerability scanning
-(vulnix + trivy) · host inventory · Postfix/SES relay · Atuin · Documenso ·
-OptScale · Jira sync
 :::
 
 # Demo {.center .heading-party-green}
@@ -335,7 +338,7 @@ Code only — we will not run this one.
 - **Make the Terraform files unnecessary. Describe everything in Nix.**
 :::
 
-# Wait — we fixed this {.center .heading-party-red}
+# Wait. Everything Nix... we fixed this {.center .heading-party-red}
 
 ::: {.fragment}
 We fixed this **big time**.
