@@ -31,6 +31,10 @@ include-in-header:
       .reveal section img.absolute {
         background: none; border: none; box-shadow: none; margin: 0;
       }
+      /* a slide with marks down the right-hand side keeps its text narrow */
+      .marks-right > p,
+      .marks-right > ol,
+      .marks-right > ul { width: 62%; }
       /* for artwork that has its own white background */
       .reveal section img.card {
         border-radius: 16px;
@@ -88,13 +92,13 @@ I dropped that plan.
 
 - Almost **7 years** old, based in Amersfoort, NL
 - We do fun cloud and AI stuff and we do smart FinOps as well
-- **AWS Advanced Partner** — DevOps competency, ISO 27001, 100+ launches
+- **AWS Advanced Partner** DevOps competency, ISO 27001, 100+ launches
 - **Open source first**: 80+ public repositories, Apache-2.0
 - **Terraform** and **Nix** are our core cloud technologies
 
 # ElastiNix {.center .heading-party-blue}
 
-![](img/elastinix-logo.png){.absolute .on-top top=0 right=70 width="300"}
+![](img/elastinix-logo.png){.absolute .on-top top=0 right=70 width="200"}
 
 Running NixOS smoothly on AWS
 
@@ -103,11 +107,13 @@ Running NixOS smoothly on AWS
 - Who runs NixOS in production on a server?
 - Who runs NixOS in the public in public cloud?
 - Who runs NixOS in AWS on EC2 or ECS?
+
+- What are your opinions about one of these combinations?
 -->
 
 ## Why we built it {.center}
 
-- One **source of truth** per machine — the OS *and* the infrastructure it runs on
+- One **source of truth** per machine, the OS *and* the infrastructure it runs on
 - Fits **CatStack**, our Terraform framework: domains, environments, DRY
 - Made for **teams**
 - Made for **GitOps**
@@ -122,8 +128,8 @@ Running NixOS smoothly on AWS
 
 ## Where it came from {.center}
 
-- **Sept 2022** — Carpay publishes the core idea
-- **March 2025** — first commit
+- **Sept 2022**. Carpay publishes the core idea
+- **March 2025**. our first commit
 - Grew **organically**, one real client project at a time
 - Since `nixos-25.05`: versioned against official NixOS releases
 - Two repos: the **flake** and the **Terraform module**
@@ -132,8 +138,8 @@ Running NixOS smoothly on AWS
 
 Split the machine in two:
 
-- **bootstrap image** — minimal NixOS, provisioned once, left alone
-- **live config** — the actual machine, deployed onto it
+- **bootstrap image** minimal NixOS, provisioned once, left alone
+- **live config** the actual machine, deployed onto it
 
 ::: {.fragment}
 Change your application → you do **not** reprovision the hardware.
@@ -182,11 +188,10 @@ Change one line of NixOS config → new store path → Terraform sees a diff.
 That is the whole trick.
 :::
 
-## Baked vs. Brewed {.center}
+## Baked vs. Brewed {.center .marks-right}
 
-![](img/elastinix-baked-brewed.png){.absolute .on-top .card top=200 left=75 width="900"}
-
-## Baked vs. Brewed {.center}
+![](img/elastinix-baked.png){.absolute .on-top top=120 right=45 width="200"}
+![](img/elastinix-brewed.png){.absolute .on-top top=380 right=35 width="220"}
 
 Two ways to get a machine onto AWS.
 
@@ -201,7 +206,7 @@ Two ways to get a machine onto AWS.
 2. Terraform uploads, imports, boots it
 3. Copy the rest of the closure onto the running machine
 
-## Baked vs. Brewed — when {.center}
+## Baked vs. Brewed  when {.center}
 
 |                   | Baked              | Brewed                  |
 |-------------------|--------------------|-------------------------|
