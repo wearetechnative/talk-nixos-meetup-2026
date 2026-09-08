@@ -338,6 +338,7 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 | | Nivis | OpenTofu | Terranix | NixOps 4 | Pulumi |
 |---|:--:|:--:|:--:|:--:|:--:|
 | Config language | Nix | HCL | Nix → HCL | Nix | TS/Py/Go |
+| Written in | Go | Go | Nix | Rust | Go |
 | How it uses TF providers | spawns them | native | generates HCL | in progress | compiles them |
 | Outputs feed back into config | yes | HCL refs only | no | yes | yes |
 | Graph topology | grows per phase | static | static | static | dynamic |
@@ -345,7 +346,10 @@ export TF_VAR_ec2_host_live_path="${liveConfig...system.build.toplevel}"
 :::
 
 ::: {.fragment}
-Closest by *intent*: Terranix. Closest by *mechanism*: Pulumi. Neither is this.
+Closest by **intent** — and on that branch, by **mechanism** too: **NixOps 4**.
+
+Pulumi rides the same providers, but compiles them.
+Terranix shares the language, not the ambition.
 :::
 
 ## About NixOps 4 {.center}
@@ -380,8 +384,9 @@ That is the same sentence I have been building towards all evening.
 :::
 
 ::: {.fragment}
-Different scope, not a winner. If two people independently reach for the
-same coupling, the coupling is probably right.
+So what is left is **scope**: they are building a platform. This is one coupling.
+
+If two people independently reach for that coupling, it is probably right.
 :::
 
 # How {.center .heading-party-blue}
